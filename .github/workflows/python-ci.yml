@@ -1,0 +1,53 @@
+
+name: Python CI Pipeline
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  python-check:
+    name: Python Syntax Check
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Check Python version
+        run: python --version
+
+      - name: Check Python syntax
+        run: |
+          python - <<'PY'
+          import ast
+          from pathlib import Path
+
+          files = list(Path(".").rglob("*.py"))
+          files = [
+              p for p in files
+              if not any(part.startswith(".") for part in p.parts)
+              and ".venv" not in p.parts
+              and "venv" not in p.parts
+              and "node_modules" not in p.parts
+          ]
+
+          for file in files:
+              ast.parse(file.read_text(encoding="utf-8"), filename=str(file))
+              print(f"Syntax OK: {file}")
+
+          print(f"Checked {len(files)} Python file(s).")
+          PY
+
+
