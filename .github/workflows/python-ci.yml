@@ -13,7 +13,7 @@ permissions:
 
 jobs:
   python-check:
-    name: Python Syntax Check
+    name: Python Syntax and Unit Tests
     runs-on: ubuntu-latest
 
     steps:
@@ -29,25 +29,7 @@ jobs:
         run: python --version
 
       - name: Check Python syntax
-        run: |
-          python - <<'PY'
-          import ast
-          from pathlib import Path
+        run: python -m compileall -q app.py test_app.py
 
-          files = list(Path(".").rglob("*.py"))
-          files = [
-              p for p in files
-              if not any(part.startswith(".") for part in p.parts)
-              and ".venv" not in p.parts
-              and "venv" not in p.parts
-              and "node_modules" not in p.parts
-          ]
-
-          for file in files:
-              ast.parse(file.read_text(encoding="utf-8"), filename=str(file))
-              print(f"Syntax OK: {file}")
-
-          print(f"Checked {len(files)} Python file(s).")
-          PY
-
-
+      - name: Run unit tests
+        run: python -m unittest -v test_app
